@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Job Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f8f9fb;
+    --surface: #ffffff;
+    --surface2: #f1f3f6;
+    --border: #e2e6ed;
+    --border2: #c8ced8;
+    --text: #111827;
+    --muted: #6b7280;
+    --accent: #2563eb;
+    --accent2: #7c3aed;
+    --accent3: #e11d48;
+    --warn: #d97706;
+    --success: #059669;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    font-size: 14px;
+  }
+
+  /* Header */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 32px;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    background: var(--surface);
+    z-index: 100;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  }
+
+  .logo {
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 20px;
+    letter-spacing: -0.5px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .logo span { color: #2563eb; }
+
+  .header-actions { display: flex; gap: 10px; align-items: center; }
+
+  .btn {
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    padding: 8px 16px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+  }
+  .btn-primary {
+    background: var(--accent);
+    color: #ffffff;
+  }
+  .btn-primary:hover { background: #1d4ed8; transform: translateY(-1px); }
+  .btn-ghost {
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--border);
+  }
+  .btn-ghost:hover { border-color: var(--border2); color: var(--text); }
+
+  /* Stats bar */
+  .stats-bar {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .stat {
+    padding: 20px 24px;
+    border-right: 1px solid var(--border);
+  }
+  .stat:last-child { border-right: none; }
+  .stat-num {
+    font-family: 'Inter', sans-serif;
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 1;
+  }
+  .stat-label {
+    color: var(--muted);
+    font-size: 11px;
+    margin-top: 4px;
+    letter-spacing: 0.5px;
+  }
+  .c-accent { color: #2563eb; }
+  .c-accent2 { color: #7c3aed; }
+  .c-accent3 { color: #e11d48; }
+  .c-warn { color: #d97706; }
+  .c-success { color: #059669; }
+
+  /* Main layout */
+  .main {
+    padding: 24px 32px;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  /* Filter bar */
+  .filter-bar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .search-wrap {
+    position: relative;
+    flex: 1;
+    min-width: 200px;
+  }
+  .search-wrap input {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 12px 8px 34px;
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .search-wrap input:focus { border-color: var(--accent); }
+  .search-wrap input::placeholder { color: var(--muted); }
+  .search-icon {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted);
+    font-size: 14px;
+    pointer-events: none;
+  }
+
+  .filter-select {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 12px;
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    outline: none;
+    cursor: pointer;
+    transition: border-color 0.15s;
+  }
+  .filter-select:focus { border-color: var(--accent); }
+
+  /* Table */
+  .table-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  thead tr {
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+  }
+
+  th {
+    padding: 12px 16px;
+    text-align: left;
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--muted);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    white-space: nowrap;
+    cursor: pointer;
+    user-select: none;
+    transition: color 0.15s;
+  }
+  th:hover { color: var(--text); }
+  th.sorted { color: var(--accent); }
+
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background 0.1s;
+    cursor: pointer;
+  }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: var(--surface2); }
+  tbody tr.expanded { background: var(--surface2); }
+
+  td {
+    padding: 14px 16px;
+    vertical-align: middle;
+  }
+
+  .company-cell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .company-logo {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    background: #eff6ff;
+    border: 1px solid #dbeafe;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 11px;
+    flex-shrink: 0;
+    color: #2563eb;
+  }
+  .company-name {
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+  }
+
+  .position-cell {
+    color: var(--text);
+    font-size: 13px;
+    max-width: 200px;
+  }
+
+  .date-cell { color: var(--muted); font-size: 12px; }
+
+  /* Status badge */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 10px;
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+  .badge::before { content: ''; width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+
+  .badge-open { background: #e0f2fe; color: #0369a1; }
+  .badge-open::before { background: #0ea5e9; }
+  .badge-applied { background: #f3f4f6; color: #374151; }
+  .badge-applied::before { background: #9ca3af; }
+  .badge-screen { background: #ede9fe; color: #5b21b6; }
+  .badge-screen::before { background: #7c3aed; }
+  .badge-interview { background: #fef3c7; color: #92400e; }
+  .badge-interview::before { background: #d97706; animation: pulse 1.5s infinite; }
+  .badge-offer { background: #d1fae5; color: #065f46; }
+  .badge-offer::before { background: #059669; }
+  .badge-rejected { background: #fee2e2; color: #991b1b; }
+  .badge-rejected::before { background: #e11d48; }
+  .badge-withdrawn { background: #f3f4f6; color: #9ca3af; }
+  .badge-withdrawn::before { background: #d1d5db; }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.6; transform: scale(0.85); }
+  }
+
+  /* Progress pipeline */
+  .pipeline {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+  }
+  .pipe-step {
+    height: 4px;
+    width: 18px;
+    border-radius: 2px;
+    background: var(--border);
+    transition: background 0.2s;
+  }
+  .pipe-step.done { background: var(--accent); }
+  .pipe-step.active { background: var(--warn); }
+  .pipe-step.rejected { background: var(--accent3); }
+  .pipe-step.offer { background: var(--success); }
+
+  /* JD link */
+  .jd-link {
+    color: #2563eb;
+    text-decoration: none;
+    font-size: 13px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: color 0.15s;
+  }
+  .jd-link:hover { color: #1d4ed8; }
+
+  /* Action dots */
+  .actions-cell {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    justify-content: flex-end;
+  }
+  .icon-btn {
+    background: none;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    font-size: 14px;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+  }
+  .icon-btn:hover { color: var(--text); background: var(--border); }
+  .icon-btn.danger:hover { color: var(--accent3); }
+
+  /* Expanded row */
+  .expand-row { display: none; }
+  .expand-row.open { display: table-row; }
+  .expand-content {
+    padding: 16px 20px 20px;
+    background: var(--bg);
+    border-top: 1px solid var(--border);
+  }
+  .expand-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 2fr;
+    gap: 20px;
+  }
+  .expand-field label {
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 6px;
+  }
+  .expand-field .val {
+    font-size: 13px;
+    color: var(--text);
+  }
+  .notes-area {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 12px;
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    resize: vertical;
+    min-height: 70px;
+    outline: none;
+    transition: border-color 0.15s;
+    line-height: 1.6;
+  }
+  .notes-area:focus { border-color: var(--accent); }
+
+  /* Modal */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(4px);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 200;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.2s;
+  }
+  .modal-overlay.open { opacity: 1; pointer-events: all; }
+
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 12px;
+    width: 560px;
+    max-width: 95vw;
+    max-height: 90vh;
+    overflow-y: auto;
+    transform: translateY(10px);
+    transition: transform 0.2s;
+  }
+  .modal-overlay.open .modal { transform: translateY(0); }
+
+  .modal-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .modal-title {
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 16px;
+  }
+  .modal-body { padding: 24px; display: flex; flex-direction: column; gap: 16px; }
+
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field.full { grid-column: 1 / -1; }
+  .field label {
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+  .field input, .field select, .field textarea {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 9px 12px;
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .field input:focus, .field select:focus, .field textarea:focus {
+    border-color: var(--accent);
+  }
+  .field input::placeholder, .field textarea::placeholder { color: var(--muted); }
+  .field textarea { resize: vertical; min-height: 80px; line-height: 1.6; }
+
+  .modal-footer {
+    padding: 16px 24px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+  }
+
+  /* Empty state */
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--muted);
+  }
+  .empty-icon { font-size: 36px; margin-bottom: 12px; }
+  .empty-state p { font-size: 13px; margin-top: 6px; }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+  @media (max-width: 768px) {
+    .stats-bar { grid-template-columns: repeat(3, 1fr); }
+    .stat:nth-child(4), .stat:nth-child(5) { border-top: 1px solid var(--border); }
+    header { padding: 14px 16px; }
+    .main { padding: 16px; }
+    .expand-grid { grid-template-columns: 1fr; }
+    .field-row { grid-template-columns: 1fr; }
+    th.hide-mobile, td.hide-mobile { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">job<span>track</span></div>
+  <div class="header-actions">
+    <button class="btn btn-ghost" onclick="exportCSV()">↓ Export</button>
+    <button class="btn btn-primary" onclick="openModal()">+ New Application</button>
+  </div>
+</header>
+
+<div class="stats-bar" id="statsBar">
+  <!-- filled by JS -->
+</div>
+
+<div class="main">
+  <div class="filter-bar">
+    <div class="search-wrap">
+      <span class="search-icon">⌕</span>
+      <input type="text" id="searchInput" placeholder="Search position or company..." oninput="renderTable()">
+    </div>
+    <select class="filter-select" id="statusFilter" onchange="renderTable()">
+      <option value="">All statuses</option>
+      <option value="Open">Open</option>
+      <option value="Applied">Applied</option>
+      <option value="Phone Screen">Phone Screen</option>
+      <option value="Interviewing">Interviewing</option>
+      <option value="Offer">Offer</option>
+      <option value="Rejected">Rejected</option>
+      <option value="Withdrawn">Withdrawn</option>
+    </select>
+    <select class="filter-select" id="sortSelect" onchange="renderTable()">
+      <option value="date_desc">Newest first</option>
+      <option value="date_asc">Oldest first</option>
+      <option value="company_asc">Company A→Z</option>
+      <option value="status">Status</option>
+    </select>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Company</th>
+          <th>Position</th>
+          <th class="hide-mobile">Area</th>
+          <th class="hide-mobile">Date</th>
+          <th>Status</th>
+          <th class="hide-mobile">Pipeline</th>
+          <th class="hide-mobile">JD</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="tableBody">
+      </tbody>
+    </table>
+    <div id="emptyState" class="empty-state" style="display:none;">
+      <div class="empty-icon">📋</div>
+      <strong>No applications yet</strong>
+      <p>Click "New Application" to add your first one.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Add/Edit Modal -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModalOutside(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modalTitle">New Application</div>
+      <button class="icon-btn" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field-row">
+        <div class="field">
+          <label>Company *</label>
+          <input type="text" id="f_company" placeholder="Acme Corp">
+        </div>
+        <div class="field">
+          <label>Position *</label>
+          <input type="text" id="f_position" placeholder="Senior Engineer">
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Date Applied *</label>
+          <input type="date" id="f_date">
+        </div>
+        <div class="field">
+          <label>Status</label>
+          <select id="f_status">
+            <option>Open</option>
+            <option>Applied</option>
+            <option>Phone Screen</option>
+            <option>Interviewing</option>
+            <option>Offer</option>
+            <option>Rejected</option>
+            <option>Withdrawn</option>
+          </select>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Area</label>
+          <select id="f_area">
+            <option value="">— Select —</option>
+            <option>Tech</option>
+            <option>Admin</option>
+            <option>Education</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Location</label>
+          <input type="text" id="f_location" placeholder="Remote / SF / Hybrid">
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Salary Range</label>
+          <input type="text" id="f_salary" placeholder="$120k – $160k">
+        </div>
+      </div>
+      <div class="field full">
+        <label>Job Description URL</label>
+        <input type="url" id="f_url" placeholder="https://careers.company.com/...">
+      </div>
+      <div class="field full">
+        <label>Notes</label>
+        <textarea id="f_notes" placeholder="Recruiter name, referral, interview details..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveApp()">Save Application</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── Data ───────────────────────────────────────────────────────
+const STORAGE_KEY = 'jobtrack_apps';
+
+const STATUS_ORDER = ['Open','Applied','Phone Screen','Interviewing','Offer','Rejected','Withdrawn'];
+const PIPELINE_STEPS = ['Applied','Phone Screen','Interviewing','Offer'];
+
+const badgeClass = {
+  'Open': 'badge-open',
+  'Applied': 'badge-applied',
+  'Phone Screen': 'badge-screen',
+  'Interviewing': 'badge-interview',
+  'Offer': 'badge-offer',
+  'Rejected': 'badge-rejected',
+  'Withdrawn': 'badge-withdrawn'
+};
+
+function loadApps() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
+  catch { return []; }
+}
+
+function saveApps(apps) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(apps));
+}
+
+let apps = loadApps();
+let editingId = null;
+
+// Add sample data if empty
+if (apps.length === 0) {
+  apps = [
+    { id: uid(), company: 'Stripe', position: 'Staff Software Engineer', date: '2026-03-10', status: 'Interviewing', location: 'Remote', salary: '$200k–$260k', url: 'https://stripe.com/jobs', notes: 'Passed phone screen 3/15. System design round next week.' },
+    { id: uid(), company: 'Anthropic', position: 'ML Engineer', date: '2026-03-14', status: 'Phone Screen', location: 'SF / Hybrid', salary: '$180k–$230k', url: 'https://anthropic.com/careers', notes: 'Recruiter reached out on LinkedIn. Call scheduled 3/28.' },
+    { id: uid(), company: 'Linear', position: 'Frontend Engineer', date: '2026-03-18', status: 'Applied', location: 'Remote', salary: '$160k–$200k', url: 'https://linear.app/careers', notes: '' },
+    { id: uid(), company: 'Vercel', position: 'Senior Engineer', date: '2026-03-05', status: 'Rejected', location: 'Remote', salary: '$170k–$220k', url: '', notes: 'Got to final round. Rejected 3/22.' },
+    { id: uid(), company: 'Figma', position: 'Product Engineer', date: '2026-02-28', status: 'Offer', location: 'SF', salary: '$195k–$240k', url: 'https://figma.com/careers', notes: 'Offer received 3/20! Deadline 4/5. Negotiating.' },
+  ];
+  saveApps(apps);
+}
+
+function uid() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2);
+}
+
+// ─── Stats ───────────────────────────────────────────────────────
+function renderStats() {
+  const total = apps.length;
+  const active = apps.filter(a => !['Rejected','Withdrawn'].includes(a.status)).length;
+  const interviewing = apps.filter(a => a.status === 'Interviewing').length;
+  const offers = apps.filter(a => a.status === 'Offer').length;
+  const rejected = apps.filter(a => a.status === 'Rejected').length;
+
+  document.getElementById('statsBar').innerHTML = `
+    <div class="stat"><div class="stat-num c-accent">${total}</div><div class="stat-label">Total</div></div>
+    <div class="stat"><div class="stat-num c-accent2">${active}</div><div class="stat-label">Active</div></div>
+    <div class="stat"><div class="stat-num c-warn">${interviewing}</div><div class="stat-label">Interviewing</div></div>
+    <div class="stat"><div class="stat-num c-success">${offers}</div><div class="stat-label">Offers</div></div>
+    <div class="stat"><div class="stat-num c-accent3">${rejected}</div><div class="stat-label">Rejected</div></div>
+  `;
+}
+
+// ─── Pipeline bar ────────────────────────────────────────────────
+function pipelineHTML(status) {
+  const rejected = status === 'Rejected';
+  const withdrawn = status === 'Withdrawn';
+  const statusIdx = PIPELINE_STEPS.indexOf(status);
+
+  return PIPELINE_STEPS.map((step, i) => {
+    let cls = '';
+    if (rejected && i <= 2) cls = 'rejected';
+    else if (status === 'Offer') cls = 'offer';
+    else if (i < statusIdx) cls = 'done';
+    else if (i === statusIdx) cls = withdrawn ? '' : 'active';
+    return `<div class="pipe-step ${cls}"></div>`;
+  }).join('');
+}
+
+// ─── Table ───────────────────────────────────────────────────────
+function getFiltered() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  const sf = document.getElementById('statusFilter').value;
+  const sort = document.getElementById('sortSelect').value;
+
+  let filtered = apps.filter(a => {
+    const matchQ = !q || a.company.toLowerCase().includes(q) || a.position.toLowerCase().includes(q);
+    const matchS = !sf || a.status === sf;
+    return matchQ && matchS;
+  });
+
+  if (sort === 'date_desc') filtered.sort((a,b) => b.date.localeCompare(a.date));
+  else if (sort === 'date_asc') filtered.sort((a,b) => a.date.localeCompare(b.date));
+  else if (sort === 'company_asc') filtered.sort((a,b) => a.company.localeCompare(b.company));
+  else if (sort === 'status') filtered.sort((a,b) => STATUS_ORDER.indexOf(a.status) - STATUS_ORDER.indexOf(b.status));
+
+  return filtered;
+}
+
+function renderTable() {
+  renderStats();
+  const filtered = getFiltered();
+  const tbody = document.getElementById('tableBody');
+  const empty = document.getElementById('emptyState');
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+
+  tbody.innerHTML = filtered.map(app => {
+    const initials = app.company.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
+    const dateStr = new Date(app.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' });
+    const jdCell = app.url
+      ? `<a class="jd-link" href="${escapeHTML(app.url)}" target="_blank" onclick="event.stopPropagation()">↗ View</a>`
+      : `<span style="color:var(--border2)">—</span>`;
+
+    return `
+      <tr onclick="toggleExpand('${app.id}')" id="row-${app.id}">
+        <td>
+          <div class="company-cell">
+            <div class="company-logo">${initials}</div>
+            <div class="company-name">${escapeHTML(app.company)}</div>
+          </div>
+        </td>
+        <td class="position-cell">${escapeHTML(app.position)}</td>
+        <td class="hide-mobile" style="color:var(--muted);font-size:13px;">${escapeHTML(app.area || '—')}</td>
+        <td class="date-cell hide-mobile">${dateStr}</td>
+        <td><span class="badge ${badgeClass[app.status] || ''}">${app.status}</span></td>
+        <td class="hide-mobile"><div class="pipeline">${pipelineHTML(app.status)}</div></td>
+        <td class="hide-mobile">${jdCell}</td>
+        <td>
+          <div class="actions-cell" onclick="event.stopPropagation()">
+            <button class="icon-btn" title="Edit" onclick="editApp('${app.id}')">✎</button>
+            <button class="icon-btn danger" title="Delete" onclick="deleteApp('${app.id}')">✕</button>
+          </div>
+        </td>
+      </tr>
+      <tr class="expand-row" id="expand-${app.id}">
+        <td colspan="7">
+          <div class="expand-content">
+            <div class="expand-grid">
+              <div class="expand-field">
+                <label>Location</label>
+                <div class="val">${escapeHTML(app.location || '—')}</div>
+              </div>
+              <div class="expand-field">
+                <label>Salary Range</label>
+                <div class="val">${escapeHTML(app.salary || '—')}</div>
+              </div>
+              <div class="expand-field">
+                <label>Notes</label>
+                <textarea class="notes-area" onchange="updateNotes('${app.id}', this.value)" onclick="event.stopPropagation()">${escapeHTML(app.notes || '')}</textarea>
+              </div>
+            </div>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function toggleExpand(id) {
+  const row = document.getElementById(`row-${id}`);
+  const exp = document.getElementById(`expand-${id}`);
+  const isOpen = exp.classList.contains('open');
+  // close all
+  document.querySelectorAll('.expand-row.open').forEach(r => r.classList.remove('open'));
+  document.querySelectorAll('tbody tr.expanded').forEach(r => r.classList.remove('expanded'));
+  if (!isOpen) {
+    exp.classList.add('open');
+    row.classList.add('expanded');
+  }
+}
+
+function updateNotes(id, value) {
+  const app = apps.find(a => a.id === id);
+  if (app) { app.notes = value; saveApps(apps); }
+}
+
+function deleteApp(id) {
+  if (!confirm('Remove this application?')) return;
+  apps = apps.filter(a => a.id !== id);
+  saveApps(apps);
+  renderTable();
+}
+
+// ─── Modal ───────────────────────────────────────────────────────
+function openModal() {
+  editingId = null;
+  document.getElementById('modalTitle').textContent = 'New Application';
+  ['company','position','date','status','area','location','salary','url','notes'].forEach(f => {
+    const el = document.getElementById('f_' + f);
+    if (el.tagName === 'SELECT') el.value = el.id === 'f_status' ? 'Open' : '';
+    else el.value = '';
+  });
+  document.getElementById('f_date').value = new Date().toISOString().slice(0,10);
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function editApp(id) {
+  const app = apps.find(a => a.id === id);
+  if (!app) return;
+  editingId = id;
+  document.getElementById('modalTitle').textContent = 'Edit Application';
+  document.getElementById('f_company').value = app.company;
+  document.getElementById('f_position').value = app.position;
+  document.getElementById('f_date').value = app.date;
+  document.getElementById('f_status').value = app.status;
+  document.getElementById('f_area').value = app.area || '';
+  document.getElementById('f_location').value = app.location || '';
+  document.getElementById('f_salary').value = app.salary || '';
+  document.getElementById('f_url').value = app.url || '';
+  document.getElementById('f_notes').value = app.notes || '';
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('open');
+}
+
+function closeModalOutside(e) {
+  if (e.target === document.getElementById('modalOverlay')) closeModal();
+}
+
+function saveApp() {
+  const company = document.getElementById('f_company').value.trim();
+  const position = document.getElementById('f_position').value.trim();
+  const date = document.getElementById('f_date').value;
+  if (!company || !position || !date) {
+    alert('Company, position, and date are required.');
+    return;
+  }
+  const data = {
+    company, position, date,
+    status: document.getElementById('f_status').value,
+    area: document.getElementById('f_area').value,
+    location: document.getElementById('f_location').value.trim(),
+    salary: document.getElementById('f_salary').value.trim(),
+    url: document.getElementById('f_url').value.trim(),
+    notes: document.getElementById('f_notes').value.trim(),
+  };
+
+  if (editingId) {
+    const idx = apps.findIndex(a => a.id === editingId);
+    if (idx !== -1) apps[idx] = { ...apps[idx], ...data };
+  } else {
+    apps.unshift({ id: uid(), ...data });
+  }
+
+  saveApps(apps);
+  closeModal();
+  renderTable();
+}
+
+// ─── Export ──────────────────────────────────────────────────────
+function exportCSV() {
+  const headers = ['Company','Position','Date','Status','Location','Salary','JD URL','Notes'];
+  const rows = apps.map(a => [
+    a.company, a.position, a.date, a.status, a.location||'', a.salary||'', a.url||'', (a.notes||'').replace(/\n/g,' ')
+  ].map(v => `"${v.replace(/"/g,'""')}"`).join(','));
+  const csv = [headers.join(','), ...rows].join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'job-applications.csv';
+  a.click();
+}
+
+// ─── Utils ───────────────────────────────────────────────────────
+function escapeHTML(s) {
+  if (!s) return '';
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ─── Init ────────────────────────────────────────────────────────
+renderTable();
+</script>
+</body>
+</html>
